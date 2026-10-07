@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambridge Stage 9 Science Virtual Lab</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for rendering physics & chemistry formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .atom-shell {
+            border: 1.5px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        @keyframes pulse-flame {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+        .animate-flame { animation: pulse-flame 0.8s infinite ease-in-out; }
+
+        @keyframes float-particle {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(180deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+        .animate-particle { animation: float-particle 4s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col custom-scrollbar selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Curriculum Badge -->
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-gradient-to-br from-indigo-500 to-cyan-500 text-slate-950 rounded-xl shadow-md">
+                        <i class="fa-solid fa-flask-vial text-xl font-black"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400">
+                                Cambridge Stage 9 Science Lab
+                            </h1>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-indigo-950/80 text-indigo-300 border border-indigo-700/60 rounded-full">Lower Secondary</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Interactive Curriculum Simulations & Knowledge Check</p>
+                    </div>
+                </div>
+
+                <!-- Main Module Tabs -->
+                <nav class="flex space-x-1 sm:space-x-2">
+                    <button id="nav-chem-btn" onclick="switchMainTab('chem')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center space-x-2">
+                        <i class="fa-solid fa-atom text-indigo-200"></i>
+                        <span>Unit 2: Chemistry</span>
+                    </button>
+                    <button id="nav-phys-btn" onclick="switchMainTab('phys')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt text-amber-400"></i>
+                        <span>Unit 3: Physics</span>
+                    </button>
+                    <button id="nav-quiz-btn" onclick="switchMainTab('quiz')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-graduation-cap text-emerald-400"></i>
+                        <span>Quiz Assessment</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation for Topics -->
+        <aside class="w-full md:w-72 bg-slate-900/90 backdrop-blur rounded-2xl p-4 border border-slate-800 flex flex-col justify-between shrink-0 shadow-xl">
+            <div class="space-y-6">
+                <!-- Chemistry Submenu -->
+                <div id="chem-submenu" class="space-y-1.5">
+                    <div class="flex items-center space-x-2 px-2 mb-2">
+                        <i class="fa-solid fa-vial text-indigo-400 text-xs"></i>
+                        <h2 class="text-xs font-bold text-indigo-300 uppercase tracking-wider">2. Properties of Materials</h2>
+                    </div>
+                    <button onclick="loadLab('atomic')" id="btn-lab-atomic" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center space-x-2.5 bg-indigo-600/30 text-indigo-300 border border-indigo-500/40">
+                        <i class="fa-solid fa-circle-dot w-4 text-indigo-400"></i>
+                        <span>2.1 Atomic Structure & Table</span>
+                    </button>
+                    <button onclick="loadLab('trends')" id="btn-lab-trends" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-chart-line w-4 text-emerald-400"></i>
+                        <span>2.2 Periodic Group Trends</span>
+                    </button>
+                    <button onclick="loadLab('bonding')" id="btn-lab-bonding" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-link w-4 text-amber-400"></i>
+                        <span>2.3 Compound Formation</span>
+                    </button>
+                    <button onclick="loadLab('structures')" id="btn-lab-structures" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-cubes w-4 text-cyan-400"></i>
+                        <span>2.4 Simple & Giant Structures</span>
+                    </button>
+                </div>
+
+                <!-- Physics Submenu -->
+                <div id="phys-submenu" class="space-y-1.5 hidden">
+                    <div class="flex items-center space-x-2 px-2 mb-2">
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                        <h2 class="text-xs font-bold text-amber-300 uppercase tracking-wider">3. Forces and Energy</h2>
+                    </div>
+                    <button onclick="loadLab('density')" id="btn-lab-density" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-weight-hanging w-4 text-purple-400"></i>
+                        <span>3.1 Density Measurement</span>
+                    </button>
+                    <button onclick="loadLab('heat')" id="btn-lab-heat" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-temperature-three-quarters w-4 text-rose-400"></i>
+                        <span>3.2 Heat vs Temperature</span>
+                    </button>
+                    <button onclick="loadLab('sankey')" id="btn-lab-sankey" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-diagram-project w-4 text-yellow-400"></i>
+                        <span>3.3 Conservation of Energy</span>
+                    </button>
+                    <button onclick="loadLab('transfer')" id="btn-lab-transfer" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-fire-burner w-4 text-orange-400"></i>
+                        <span>3.4-3.5 Thermal Energy Transfer</span>
+                    </button>
+                    <button onclick="loadLab('evaporation')" id="btn-lab-evaporation" class="subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5">
+                        <i class="fa-solid fa-wind w-4 text-sky-400"></i>
+                        <span>3.6 Evaporative Cooling</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Learning Objective Card -->
+            <div class="mt-6 p-3.5 bg-slate-950/80 rounded-xl border border-slate-800">
+                <div class="flex items-center space-x-2 text-indigo-400 mb-1.5">
+                    <i class="fa-solid fa-bullseye text-xs"></i>
+                    <span class="text-[11px] font-bold uppercase tracking-wider">Cambridge Stage 9 Objective</span>
+                </div>
+                <p id="learning-objective" class="text-xs text-slate-300 leading-relaxed">
+                    Understand subatomic particle arrangement (protons, neutrons, electrons) for the first 20 elements and electron shell capacity (2, 8, 8).
+                </p>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Screen -->
+        <section class="flex-1 bg-slate-900/60 rounded-2xl border border-slate-800 p-4 sm:p-6 flex flex-col justify-between overflow-hidden shadow-2xl relative backdrop-blur-sm">
+
+            <!-- LAB 2.1: ATOMIC STRUCTURE & PERIODIC TABLE -->
+            <div id="lab-atomic" class="lab-module flex-1 flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-800 gap-3">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-atom text-indigo-400"></i>
+                            2.1 Atomic Structure & The Periodic Table
+                        </h2>
+                        <p class="text-xs text-slate-400">Explore electron configurations (2,8,8), proton/neutron nucleus composition, and period/group trends.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-300 font-semibold">Select Element:</label>
+                        <select id="atomic-element-select" onchange="updateAtomicLab()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-indigo-300 font-bold focus:outline-none focus:border-indigo-500 shadow-inner">
+                            <!-- Populated dynamically (H to Ca) -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <!-- Atom Visualizer -->
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-center relative min-h-[340px]">
+                        <div id="atom-canvas-container" class="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center">
+                            <!-- Nucleus -->
+                            <div id="atom-nucleus" class="absolute z-20 w-16 h-16 rounded-full bg-gradient-to-tr from-rose-600 via-amber-500 to-orange-400 flex flex-col items-center justify-center text-white text-xs font-bold shadow-xl shadow-rose-500/20 transition-all duration-300">
+                                <span id="nucleus-p">1 P</span>
+                                <span id="nucleus-n" class="text-[10px] text-amber-200">0 N</span>
+                            </div>
+                            <!-- Dynamic Electron Shells -->
+                        </div>
+                        <div class="absolute bottom-3 left-4 right-4 flex justify-between text-[11px] text-slate-400 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
+                            <span><i class="fa-solid fa-circle text-rose-500 mr-1"></i> Proton (+1)</span>
+                            <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i> Neutron (0)</span>
+                            <span><i class="fa-solid fa-circle text-cyan-400 mr-1"></i> Electron (-1)</span>
+                        </div>
+                    </div>
+
+                    <!-- Element Data Panel -->
+                    <div class="lg:col-span-5 flex flex-col justify-between gap-4">
+                        <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-4xl font-black text-indigo-400 font-mono" id="elem-symbol">H</span>
+                                <div class="text-right">
+                                    <h3 class="text-lg font-bold text-white" id="elem-name">Hydrogen</h3>
+                                    <span class="text-xs bg-indigo-950 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-700/60 font-medium" id="elem-group">Group 1, Period 1</span>
+                                </div>
+                            </div>
+                            <hr class="border-slate-800">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+                                    <p class="text-slate-400">Atomic Number ($Z$)</p>
+                                    <p class="text-base font-bold text-rose-400 font-mono" id="elem-z">1</p>
+                                </div>
+                                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+                                    <p class="text-slate-400">Mass Number ($A$)</p>
+                                    <p class="text-base font-bold text-amber-400 font-mono" id="elem-a">1</p>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                                <p class="text-xs text-slate-400 mb-1">Electron Shell Arrangement:</p>
+                                <p class="text-lg font-mono font-bold text-cyan-400" id="elem-config">1</p>
+                                <p class="text-xs text-slate-400 mt-1" id="elem-config-desc">Shell 1: 1 e⁻</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-950/40 rounded-2xl p-4 border border-indigo-800/40 text-xs text-indigo-200 leading-relaxed">
+                            <p class="font-bold mb-1 text-indigo-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lightbulb text-indigo-400"></i> Key Rule:
+                            </p>
+                            Outer shell valence electrons match the <strong>Group Number</strong>. Total filled electron shells match the <strong>Period Number</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 2.2: TRENDS IN GROUPS -->
+            <div id="lab-trends" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                        2.2 Trends in Groups within the Periodic Table
+                    </h2>
+                    <p class="text-xs text-slate-400">Observe reactivity patterns in Group 1 Alkali Metals and state changes in Group 7 Halogens.</p>
+                </div>
+
+                <div class="flex space-x-3 mt-4">
+                    <button onclick="switchTrendGroup('g1')" id="btn-g1" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
+                        Group 1: Alkali Metals + Water
+                    </button>
+                    <button onclick="switchTrendGroup('g7')" id="btn-g7" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200">
+                        Group 7: Halogens Trends
+                    </button>
+                </div>
+
+                <!-- Group 1 Alkali Metals Lab -->
+                <div id="group1-lab" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-between min-h-[300px]">
+                        <!-- Reaction Trough Visual -->
+                        <div class="relative w-full h-52 bg-slate-950 rounded-xl border border-slate-800 flex items-end justify-center overflow-hidden">
+                            <!-- Water Body -->
+                            <div class="w-full h-28 bg-cyan-500/20 border-t border-cyan-400/50 relative flex items-center justify-center">
+                                <span class="text-xs text-cyan-200 font-medium bg-slate-950/60 px-2 py-0.5 rounded border border-cyan-500/30">Water + Universal Indicator</span>
+                                <div id="reaction-bubbles" class="hidden absolute inset-0 flex justify-center items-center">
+                                    <div id="reaction-flame-effect" class="animate-flame w-12 h-12 rounded-full bg-amber-400/50 blur-md"></div>
+                                </div>
+                            </div>
+                            <!-- Dropped Metal Piece -->
+                            <div id="metal-piece" class="absolute top-10 w-9 h-9 bg-slate-300 rounded-lg shadow-xl border border-slate-400 flex items-center justify-center font-bold text-slate-900 text-xs transition-all duration-500">
+                                Li
+                            </div>
+                        </div>
+
+                        <div class="w-full flex items-center justify-between gap-4 mt-3">
+                            <span class="text-xs text-slate-300 font-medium">Select Alkali Metal to drop:</span>
+                            <div class="flex gap-2">
+                                <button onclick="simulateGroup1('Li')" class="px-3 py-1.5 bg-slate-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl border border-slate-700 transition">Li (Lithium)</button>
+                                <button onclick="simulateGroup1('Na')" class="px-3 py-1.5 bg-slate-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl border border-slate-700 transition">Na (Sodium)</button>
+                                <button onclick="simulateGroup1('K')" class="px-3 py-1.5 bg-slate-800 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl border border-slate-700 transition">K (Potassium)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h3 id="g1-title" class="text-base font-bold text-emerald-400">Lithium + Water Reaction</h3>
+                            <div class="mt-3 space-y-2 text-xs text-slate-300">
+                                <p id="g1-desc" class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 leading-relaxed">
+                                    Fizzes gently, releases Hydrogen gas, and floats on the water surface as it slowly reacts.
+                                </p>
+                                <div class="p-3 bg-emerald-950/30 rounded-xl border border-emerald-800/40">
+                                    <span class="font-bold text-[11px] text-emerald-400 uppercase tracking-wider">Balanced Chemical Equation:</span>
+                                    <p id="g1-eq" class="font-mono text-xs text-emerald-200 mt-1">2Li(s) + 2H₂O(l) → 2LiOH(aq) + H₂(g)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
+                            <span class="font-bold text-amber-400"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Reactivity Trend:</span>
+                            Reactivity <strong>increases down Group 1</strong> because the outer electron gets further from the nucleus and is lost more easily.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 7 Halogens Lab -->
+                <div id="group7-lab" class="grid grid-cols-1 gap-6 mt-4 flex-1 hidden">
+                    <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Group 7 Halogens Properties & Physical States at Room Temperature:</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                                <span class="text-xs font-bold text-yellow-300">Fluorine (F₂)</span>
+                                <div class="w-16 h-16 mx-auto my-3 rounded-full bg-yellow-300/10 border border-yellow-300/30 flex items-center justify-center text-yellow-200 text-xs font-bold">Gas</div>
+                                <p class="text-xs text-slate-400">Pale yellow gas<br>Most reactive halogen</p>
+                            </div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                                <span class="text-xs font-bold text-emerald-400">Chlorine (Cl₂)</span>
+                                <div class="w-16 h-16 mx-auto my-3 rounded-full bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 text-xs font-bold">Gas</div>
+                                <p class="text-xs text-slate-400">Pale green gas<br>Toxic & dense</p>
+                            </div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                                <span class="text-xs font-bold text-amber-500">Bromine (Br₂)</span>
+                                <div class="w-16 h-16 mx-auto my-3 rounded-full bg-amber-700/40 border border-amber-600/60 flex items-center justify-center text-amber-200 text-xs font-bold">Liquid</div>
+                                <p class="text-xs text-slate-400">Red-brown liquid<br>Evaporates easily</p>
+                            </div>
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
+                                <span class="text-xs font-bold text-purple-400">Iodine (I₂)</span>
+                                <div class="w-16 h-16 mx-auto my-3 rounded-full bg-purple-900/60 border border-purple-500/60 flex items-center justify-center text-purple-200 text-xs font-bold">Solid</div>
+                                <p class="text-xs text-slate-400">Dark grey solid<br>Sublimes to purple vapor</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 2.3: BONDING & REACTIVITY -->
+            <div id="lab-bonding" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-link text-amber-400"></i>
+                        2.3 Why Elements React to Form Compounds
+                    </h2>
+                    <p class="text-xs text-slate-400">Compare Ionic Bonding (electron transfer) vs Covalent Bonding (electron sharing).</p>
+                </div>
+
+                <div class="flex space-x-3 mt-4">
+                    <button onclick="switchBondType('ionic')" id="btn-bond-ionic" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 text-white shadow-lg shadow-amber-600/30">
+                        Ionic Bonding: Sodium Chloride (NaCl)
+                    </button>
+                    <button onclick="switchBondType('covalent')" id="btn-bond-covalent" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200">
+                        Covalent Bonding: Water Molecule (H₂O)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <div class="lg:col-span-8 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-center relative min-h-[300px]">
+                        <div id="bonding-visual-area" class="w-full flex items-center justify-center">
+                            <!-- Visual elements dynamically rendered by switchBondType -->
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h3 id="bond-title" class="text-base font-bold text-amber-400">Ionic Bonding in NaCl</h3>
+                            <p id="bond-desc" class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Sodium loses 1 outer electron to become a positive ion ($Na^+$). Chlorine gains 1 electron to become a negative ion ($Cl^-$).
+                            </p>
+                        </div>
+                        <div class="bg-amber-950/30 p-3 rounded-xl border border-amber-800/40 text-xs text-amber-200 space-y-1">
+                            <span class="font-bold">Summary Rules:</span>
+                            <ul class="list-disc list-inside text-[11px] text-amber-300 space-y-1">
+                                <li><strong>Ionic:</strong> Metal + Non-metal (Electron Transfer)</li>
+                                <li><strong>Covalent:</strong> Non-metal + Non-metal (Shared Pair)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 2.4: GIANT vs SIMPLE STRUCTURES -->
+            <div id="lab-structures" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-cubes text-cyan-400"></i>
+                        2.4 Simple and Giant Structures
+                    </h2>
+                    <p class="text-xs text-slate-400">Compare physical properties of Giant Lattices vs Simple Molecular Structures.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 flex-1">
+                    <!-- Giant Structure Card -->
+                    <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Giant Lattice Structure</span>
+                            <h3 class="text-base font-bold text-white mt-1">Diamond / Silicon Dioxide / NaCl</h3>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Continuous 3D network of strong covalent or ionic bonds extending throughout the entire crystal lattice.
+                            </p>
+                            <div class="my-4 h-32 bg-slate-900/90 rounded-xl flex items-center justify-center border border-slate-800">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                    <div class="w-8 h-8 rounded-full bg-cyan-500/80 flex items-center justify-center text-xs font-bold text-slate-950 shadow">C</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+                            <p>• <strong>Melting Point:</strong> Very High (requires breaking strong bonds)</p>
+                            <p>• <strong>Electrical Conductivity:</strong> Non-conductors (except graphite/molten ionic)</p>
+                        </div>
+                    </div>
+
+                    <!-- Simple Molecular Structure Card -->
+                    <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Simple Molecular Structure</span>
+                            <h3 class="text-base font-bold text-white mt-1">Water (H₂O) / Carbon Dioxide (CO₂)</h3>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Strong covalent bonds <em>inside</em> molecules, but weak intermolecular forces <em>between</em> separate molecules.
+                            </p>
+                            <div class="my-4 h-32 bg-slate-900/90 rounded-xl flex items-center justify-around border border-slate-800">
+                                <div class="flex items-center gap-1 bg-slate-950 p-2 rounded-xl border border-slate-800 shadow">
+                                    <div class="w-4 h-4 rounded-full bg-white text-slate-950 text-[9px] font-bold flex items-center justify-center">H</div>
+                                    <div class="w-6 h-6 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">O</div>
+                                    <div class="w-4 h-4 rounded-full bg-white text-slate-950 text-[9px] font-bold flex items-center justify-center">H</div>
+                                </div>
+                                <div class="flex items-center gap-1 bg-slate-950 p-2 rounded-xl border border-slate-800 shadow">
+                                    <div class="w-4 h-4 rounded-full bg-white text-slate-950 text-[9px] font-bold flex items-center justify-center">H</div>
+                                    <div class="w-6 h-6 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">O</div>
+                                    <div class="w-4 h-4 rounded-full bg-white text-slate-950 text-[9px] font-bold flex items-center justify-center">H</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+                            <p>• <strong>Melting Point:</strong> Low (only weak forces between molecules break)</p>
+                            <p>• <strong>Electrical Conductivity:</strong> Poor (no free ions or delocalised e⁻)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 3.1: DENSITY LAB -->
+            <div id="lab-density" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-weight-hanging text-purple-400"></i>
+                        3.1 Density Measurement Simulation
+                    </h2>
+                    <p class="text-xs text-slate-400">Calculate density using formula $\text{Density} = \frac{\text{Mass}}{\text{Volume}}$ and observe sinking or floating.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <!-- Displacement Tank Container -->
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-between min-h-[300px]">
+                        <div class="relative w-48 h-60 bg-slate-950 rounded-b-2xl border-2 border-t-0 border-slate-700 overflow-hidden flex flex-col justify-end shadow-inner">
+                            <!-- Fluid level -->
+                            <div id="fluid-body" class="w-full bg-sky-500/30 border-t-2 border-sky-400 transition-all duration-500 relative" style="height: 55%;">
+                                <span id="fluid-label" class="absolute bottom-2 right-2 text-[10px] text-sky-200 font-bold bg-slate-950/80 px-2 py-0.5 rounded">Water (1.0 g/cm³)</span>
+                            </div>
+
+                            <!-- Submerged/Floating Block -->
+                            <div id="block-object" class="absolute left-1/2 -translate-x-1/2 w-16 h-16 bg-amber-600 border border-amber-400 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shadow-xl transition-all duration-500" style="bottom: 10px;">
+                                <span id="block-label">Object</span>
+                                <span id="block-rho-label" class="text-[9px] text-amber-200 font-mono">0.60 g/cm³</span>
+                            </div>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center text-xs text-slate-400 mt-2 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+                            <span>Initial Water Volume: <strong class="text-white">100 cm³</strong></span>
+                            <span>Displaced Volume: <strong id="v-displaced-text" class="text-cyan-400">150 cm³</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Controls -->
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wider">Object & Liquid Parameters</h3>
+
+                            <div>
+                                <label class="text-xs text-slate-300 flex justify-between">
+                                    <span>Mass ($m$):</span>
+                                    <span id="mass-val" class="font-bold text-purple-300 font-mono">300 g</span>
+                                </label>
+                                <input type="range" id="slider-mass" min="50" max="1000" step="10" value="300" oninput="updateDensityLab()" class="w-full accent-purple-500 mt-1">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-slate-300 flex justify-between">
+                                    <span>Volume ($V$):</span>
+                                    <span id="vol-val" class="font-bold text-purple-300 font-mono">500 cm³</span>
+                                </label>
+                                <input type="range" id="slider-vol" min="50" max="1000" step="10" value="500" oninput="updateDensityLab()" class="w-full accent-purple-500 mt-1">
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-slate-300 mb-1 block">Fluid Environment:</label>
+                                <select id="fluid-select" onchange="updateDensityLab()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 focus:outline-none">
+                                    <option value="1.0">Pure Water (1.00 g/cm³)</option>
+                                    <option value="0.8">Cooking Oil (0.80 g/cm³)</option>
+                                    <option value="1.26">Glycerin (1.26 g/cm³)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-slate-400">Calculated Density ($\rho$):</span>
+                                <span id="calc-density" class="font-mono font-bold text-lg text-emerald-400">0.60 g/cm³</span>
+                            </div>
+                            <div id="float-status" class="p-2 rounded-lg text-center text-xs font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800">
+                                Object FLOATS (Density &lt; Liquid Density)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 3.2: HEAT vs TEMPERATURE -->
+            <div id="lab-heat" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-temperature-three-quarters text-rose-400"></i>
+                        3.2 Heat and Temperature
+                    </h2>
+                    <p class="text-xs text-slate-400">Thermal expansion in solids and distinction between Thermal Energy vs Temperature.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-center">
+                        <div class="relative w-full h-48 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center p-4">
+                            <div class="flex flex-col items-center w-full">
+                                <span class="text-xs text-slate-400 mb-3 font-semibold">Copper Rod Thermal Expansion Visualizer</span>
+                                <div class="relative w-3/4 h-8 bg-slate-900 rounded-xl overflow-hidden border border-slate-800 flex items-center">
+                                    <div id="expanding-rod" class="h-full bg-gradient-to-r from-amber-700 via-amber-500 to-rose-500 transition-all duration-300 rounded-xl" style="width: 70%;"></div>
+                                </div>
+                                <div class="mt-4 flex items-center space-x-2">
+                                    <i class="fa-solid fa-fire text-orange-500 text-lg animate-bounce"></i>
+                                    <span class="text-xs text-slate-300">Heat source applied</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-300 flex justify-between">
+                                <span>Adjust Temperature:</span>
+                                <span id="temp-val" class="font-bold text-rose-400 font-mono">25 °C</span>
+                            </label>
+                            <input type="range" id="slider-temp" min="0" max="500" value="25" oninput="updateHeatLab()" class="w-full accent-rose-500 mt-2">
+                        </div>
+
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2">
+                            <p><strong>Temperature (°C):</strong> Measure of the average kinetic energy of individual particles.</p>
+                            <p><strong>Thermal Energy (J):</strong> Total kinetic energy of all particles combined in the object.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 3.3: SANKEY DIAGRAM & ENERGY -->
+            <div id="lab-sankey" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-yellow-400"></i>
+                        3.3 Conservation of Energy & Sankey Diagrams
+                    </h2>
+                    <p class="text-xs text-slate-400">Energy cannot be created or destroyed. Calculate percentage efficiency using Sankey diagrams.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-center">
+                        <div class="w-full max-w-md bg-slate-900/90 p-4 rounded-xl border border-slate-800 space-y-4">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="bg-yellow-500/20 text-yellow-300 px-2.5 py-1 rounded-lg border border-yellow-500/40">Total Input: 100J Electrical</span>
+                                <span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-lg border border-emerald-500/40" id="sankey-useful">Useful Output: 10J Light</span>
+                            </div>
+                            <div class="w-full h-8 bg-slate-950 rounded-xl overflow-hidden flex border border-slate-800">
+                                <div id="sankey-useful-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 10%;"></div>
+                                <div id="sankey-wasted-bar" class="h-full bg-rose-500 transition-all duration-300" style="width: 90%;"></div>
+                            </div>
+                            <div class="text-right text-xs">
+                                <span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-lg border border-rose-500/40" id="sankey-wasted">Wasted Output: 90J Heat</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-300 block mb-2">Select Electrical Device:</label>
+                            <select id="sankey-device-select" onchange="updateSankeyLab()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200">
+                                <option value="filament">Filament Light Bulb (10% Efficiency)</option>
+                                <option value="led">LED Energy Saving Bulb (85% Efficiency)</option>
+                                <option value="motor">Electric Motor (75% Efficiency)</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs">
+                            <p class="font-bold text-yellow-400">Efficiency Formula:</p>
+                            <p class="font-mono text-center my-2 text-yellow-200">$$\text{Efficiency} = \frac{\text{Useful Energy}}{\text{Total Input Energy}} \times 100\%$$</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 3.4-3.5: HEAT TRANSFER -->
+            <div id="lab-transfer" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-fire-burner text-orange-400"></i>
+                        3.4 - 3.5 Ways of Transferring Thermal Energy
+                    </h2>
+                    <p class="text-xs text-slate-400">Conduction in solids, Convection in fluids, and Radiation through vacuum.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 flex-1">
+                    <!-- Conduction -->
+                    <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-orange-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i class="fa-solid fa-bolt"></i> Conduction
+                            </h3>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Particle vibrations passed along adjacent atoms in solids. Metals are excellent conductors due to free delocalised electrons.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 mt-3">
+                            Copper &gt; Aluminium &gt; Glass &gt; Wood
+                        </div>
+                    </div>
+
+                    <!-- Convection -->
+                    <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i class="fa-solid fa-water"></i> Convection
+                            </h3>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Thermal expansion decreases liquid/gas density, causing warmer fluid to float upwards and cooler fluid to sink.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 mt-3">
+                            Examples: Boiling water, sea breezes, air heaters
+                        </div>
+                    </div>
+
+                    <!-- Radiation -->
+                    <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i class="fa-solid fa-sun"></i> Radiation
+                            </h3>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                                Infrared electromagnetic waves that do not require any particle medium (can travel through a vacuum).
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 mt-3">
+                            Matte black surfaces absorb/emit best.<br>Shiny silver surfaces reflect heat.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAB 3.6: EVAPORATIVE COOLING -->
+            <div id="lab-evaporation" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-wind text-sky-400"></i>
+                        3.6 Cooling by Evaporation
+                    </h2>
+                    <p class="text-xs text-slate-400">Demonstrating how high energy liquid particles escape, reducing average kinetic energy and temperature.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4 flex-1">
+                    <div class="lg:col-span-7 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col items-center justify-between">
+                        <div class="w-full h-48 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-around relative">
+                            <!-- Thermometer A (Water) -->
+                            <div class="flex flex-col items-center">
+                                <div class="w-4 h-32 bg-slate-900 rounded-full border border-slate-700 relative overflow-hidden flex flex-col justify-end">
+                                    <div id="thermo-water-fill" class="w-full bg-rose-500 transition-all duration-500" style="height: 60%;"></div>
+                                </div>
+                                <span class="text-xs text-slate-300 mt-2 font-bold">Water Gauze</span>
+                                <span id="temp-water-text" class="text-xs text-cyan-400 font-mono">25.0 °C</span>
+                            </div>
+
+                            <!-- Thermometer B (Ethanol) -->
+                            <div class="flex flex-col items-center">
+                                <div class="w-4 h-32 bg-slate-900 rounded-full border border-slate-700 relative overflow-hidden flex flex-col justify-end">
+                                    <div id="thermo-alcohol-fill" class="w-full bg-rose-500 transition-all duration-500" style="height: 60%;"></div>
+                                </div>
+                                <span class="text-xs text-slate-300 mt-2 font-bold">Ethanol Gauze</span>
+                                <span id="temp-alcohol-text" class="text-xs text-sky-400 font-mono">25.0 °C</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4 mt-3">
+                            <button id="fan-toggle-btn" onclick="toggleEvaporationFan()" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-sky-600/30">
+                                <i class="fa-solid fa-fan"></i> Turn On Air Fan
+                            </button>
+                            <button onclick="resetEvaporation()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition border border-slate-700">
+                                Reset Temperatures
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 bg-slate-950/80 rounded-2xl p-4 border border-slate-800 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider">Cambridge Particle Explanation:</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Only particles with the <strong>highest kinetic energy</strong> break intermolecular forces and escape into gas phase.
+                            </p>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                As high-energy particles leave, the <strong>average thermal energy</strong> of remaining particles decreases, causing a temperature drop. Ethanol evaporates faster due to weaker intermolecular bonds.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIZ ASSESSMENT MODULE -->
+            <div id="lab-quiz" class="lab-module flex-1 flex-col hidden">
+                <div class="pb-4 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+                            Stage 9 Science Assessment
+                        </h2>
+                        <p class="text-xs text-slate-400">Test your understanding with exam-aligned multiple choice questions.</p>
+                    </div>
+                    <div class="bg-indigo-950/80 px-4 py-2 rounded-xl border border-indigo-700/60">
+                        <span class="text-xs text-indigo-300 font-semibold">Total Score:</span>
+                        <span id="quiz-score" class="text-base font-black text-indigo-400 ml-1.5 font-mono">0 / 5</span>
+                    </div>
+                </div>
+
+                <div id="quiz-container" class="mt-6 flex-1 flex flex-col justify-between">
+                    <div class="bg-slate-950/80 p-6 rounded-2xl border border-slate-800">
+                        <span id="quiz-q-num" class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Question 1 / 5</span>
+                        <h3 id="quiz-q-text" class="text-sm sm:text-base font-semibold text-white mt-2 mb-6 leading-relaxed">
+                            Loading question...
+                        </h3>
+
+                        <div id="quiz-options" class="space-y-3">
+                            <!-- Quiz options injected dynamically -->
+                        </div>
+
+                        <div id="quiz-feedback" class="mt-4 p-3.5 rounded-xl text-xs font-medium hidden"></div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-4">
+                        <button id="quiz-prev-btn" onclick="prevQuizQuestion()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition disabled:opacity-40 border border-slate-700">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Previous Question
+                        </button>
+                        <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30">
+                            Next Question <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-3 text-center text-xs text-slate-400">
+        Cambridge Lower Secondary Science Stage 9 - Interactive Learning & Simulation Suite
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. Periodic Table Elements Dataset (Z=1 to 20) ---
+        const ELEMENTS_DATA = [
+            { z: 1, name: "Hydrogen", symbol: "H", a: 1, config: [1], group: 1, period: 1 },
+            { z: 2, name: "Helium", symbol: "He", a: 4, config: [2], group: 8, period: 1 },
+            { z: 3, name: "Lithium", symbol: "Li", a: 7, config: [2, 1], group: 1, period: 2 },
+            { z: 4, name: "Beryllium", symbol: "Be", a: 9, config: [2, 2], group: 2, period: 2 },
+            { z: 5, name: "Boron", symbol: "B", a: 11, config: [2, 3], group: 3, period: 2 },
+            { z: 6, name: "Carbon", symbol: "C", a: 12, config: [2, 4], group: 4, period: 2 },
+            { z: 7, name: "Nitrogen", symbol: "N", a: 14, config: [2, 5], group: 5, period: 2 },
+            { z: 8, name: "Oxygen", symbol: "O", a: 16, config: [2, 6], group: 6, period: 2 },
+            { z: 9, name: "Fluorine", symbol: "F", a: 19, config: [2, 7], group: 7, period: 2 },
+            { z: 10, name: "Neon", symbol: "Ne", a: 20, config: [2, 8], group: 8, period: 2 },
+            { z: 11, name: "Sodium", symbol: "Na", a: 23, config: [2, 8, 1], group: 1, period: 3 },
+            { z: 12, name: "Magnesium", symbol: "Mg", a: 24, config: [2, 8, 2], group: 2, period: 3 },
+            { z: 13, name: "Aluminium", symbol: "Al", a: 27, config: [2, 8, 3], group: 3, period: 3 },
+            { z: 14, name: "Silicon", symbol: "Si", a: 28, config: [2, 8, 4], group: 4, period: 3 },
+            { z: 15, name: "Phosphorus", symbol: "P", a: 31, config: [2, 8, 5], group: 5, period: 3 },
+            { z: 16, name: "Sulfur", symbol: "S", a: 32, config: [2, 8, 6], group: 6, period: 3 },
+            { z: 17, name: "Chlorine", symbol: "Cl", a: 35.5, config: [2, 8, 7], group: 7, period: 3 },
+            { z: 18, name: "Argon", symbol: "Ar", a: 40, config: [2, 8, 8], group: 8, period: 3 },
+            { z: 19, name: "Potassium", symbol: "K", a: 39, config: [2, 8, 8, 1], group: 1, period: 4 },
+            { z: 20, name: "Calcium", symbol: "Ca", a: 40, config: [2, 8, 8, 2], group: 2, period: 4 }
+        ];
+
+        // --- 2. Assessment Questions ---
+        const QUIZ_QUESTIONS = [
+            {
+                question: "An atom of Sodium (Na) has an atomic number Z = 11. What is its correct electron configuration?",
+                options: ["2, 8, 1", "2, 8, 8, 1", "8, 2, 1", "2, 9"],
+                correct: 0,
+                explanation: "Electron shells fill in order 2, 8, 8. Sodium has 11 electrons: 2 in shell 1, 8 in shell 2, and 1 in outer shell 3."
+            },
+            {
+                question: "What happens to the reactivity of Group 1 Alkali Metals as you move DOWN the group from Lithium to Potassium?",
+                options: ["Reactivity decreases", "Reactivity increases", "Reactivity stays the same", "They become non-reactive"],
+                correct: 1,
+                explanation: "Reactivity increases down Group 1 because atomic radius increases, making it easier to lose the single outer valence electron."
+            },
+            {
+                question: "An object has a mass m = 200 g and volume V = 250 cm³. Will it float or sink in pure water (density = 1.0 g/cm³)?",
+                options: [
+                    "Float, because Density = 0.80 g/cm³ (< 1.0 g/cm³)",
+                    "Sink, because Density = 1.25 g/cm³ (> 1.0 g/cm³)",
+                    "Remain suspended in the middle",
+                    "Sink because it is too heavy"
+                ],
+                correct: 0,
+                explanation: "Density = Mass / Volume = 200 / 250 = 0.80 g/cm³. Since 0.80 g/cm³ is less than water's density (1.0 g/cm³), it floats."
+            },
+            {
+                question: "Which method of thermal energy transfer can travel across a vacuum in space?",
+                options: ["Conduction", "Convection", "Radiation", "Evaporation"],
+                correct: 2,
+                explanation: "Thermal radiation travels as infrared electromagnetic waves and does not require particles to transfer energy."
+            },
+            {
+                question: "Why does liquid evaporation result in a cooling effect on the remaining liquid?",
+                options: [
+                    "High-energy particles escape, lowering the average kinetic energy of remaining liquid particles.",
+                    "The liquid absorbs cold air from the surrounding atmosphere.",
+                    "Water particles undergo an endothermic chemical reaction with air.",
+                    "Liquid density increases as particles escape."
+                ],
+                correct: 0,
+                explanation: "Evaporation removes particles with the highest kinetic energy, reducing the average thermal energy and temperature of the remaining liquid."
+            }
+        ];
+
+        let currentMainTab = 'chem';
+        let activeLabId = 'atomic';
+        let currentQuizIdx = 0;
+        let quizAnswers = Array(QUIZ_QUESTIONS.length).fill(null);
+        let fanRunning = false;
+        let fanInterval = null;
+
+        window.onload = function() {
+            populateElementDropdown();
+            updateAtomicLab();
+            updateDensityLab();
+            updateHeatLab();
+            updateSankeyLab();
+            renderQuizQuestion();
+            switchBondType('ionic');
+        };
+
+        // --- Navigation Switcher ---
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            document.getElementById('nav-chem-btn').className = tab === 'chem' ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center space-x-2' : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2';
+            document.getElementById('nav-phys-btn').className = tab === 'phys' ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center space-x-2' : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2';
+            document.getElementById('nav-quiz-btn').className = tab === 'quiz' ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center space-x-2' : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2';
+
+            document.getElementById('chem-submenu').classList.toggle('hidden', tab !== 'chem');
+            document.getElementById('phys-submenu').classList.toggle('hidden', tab !== 'phys');
+
+            if (tab === 'chem') loadLab('atomic');
+            else if (tab === 'phys') loadLab('density');
+            else loadLab('quiz');
+        }
+
+        function loadLab(labId) {
+            activeLabId = labId;
+            document.querySelectorAll('.lab-module').forEach(el => el.classList.add('hidden'));
+            const targetLab = document.getElementById('lab-' + labId);
+            if (targetLab) {
+                targetLab.classList.remove('hidden');
+                targetLab.classList.add('flex');
+            }
+
+            document.querySelectorAll('.subtab-btn').forEach(btn => {
+                btn.className = "subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-slate-200 flex items-center space-x-2.5";
+            });
+            const activeBtn = document.getElementById('btn-lab-' + labId);
+            if (activeBtn) {
+                activeBtn.className = "subtab-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center space-x-2.5 bg-indigo-600/30 text-indigo-300 border border-indigo-500/40";
+            }
+
+            const objText = document.getElementById('learning-objective');
+            const objectives = {
+                'atomic': 'Understand subatomic particle arrangement (protons, neutrons, electrons) for the first 20 elements and electron shell capacity (2, 8, 8).',
+                'trends': 'Observe reactivity trends in Group 1 Alkali Metals with water and state changes down Group 7 Halogens.',
+                'bonding': 'Distinguish Ionic Bonding (electron transfer forming ions) from Covalent Bonding (sharing valence pairs).',
+                'structures': 'Compare physical properties (melting points, conductivity) of Giant Lattices vs Simple Molecular structures.',
+                'density': 'Calculate Density = Mass / Volume and determine floating vs sinking conditions in various fluids.',
+                'heat': 'Differentiate between Temperature (°C) and Thermal Energy (J), observing thermal expansion in solids.',
+                'sankey': 'Interpret Sankey energy flow diagrams and calculate percentage efficiency of appliances.',
+                'transfer': 'Contrast Conduction in solids, Convection currents in fluids, and Infrared Radiation through space.',
+                'evaporation': 'Explain evaporative cooling using kinetic particle theory as high energy molecules escape.',
+                'quiz': 'Consolidate and test Cambridge Stage 9 curriculum learning objectives.'
+            };
+            if (objText && objectives[labId]) objText.innerText = objectives[labId];
+        }
+
+        function populateElementDropdown() {
+            const select = document.getElementById('atomic-element-select');
+            select.innerHTML = '';
+            ELEMENTS_DATA.forEach(elem => {
+                const opt = document.createElement('option');
+                opt.value = elem.z;
+                opt.textContent = `${elem.z}. ${elem.name} (${elem.symbol})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateAtomicLab() {
+            const zVal = parseInt(document.getElementById('atomic-element-select').value);
+            const elem = ELEMENTS_DATA.find(e => e.z === zVal);
+            if (!elem) return;
+
+            document.getElementById('elem-symbol').innerText = elem.symbol;
+            document.getElementById('elem-name').innerText = elem.name;
+            document.getElementById('elem-group').innerText = `Group ${elem.group}, Period ${elem.period}`;
+            document.getElementById('elem-z').innerText = elem.z;
+            document.getElementById('elem-a').innerText = elem.a;
+            document.getElementById('elem-config').innerText = elem.config.join(', ');
+            document.getElementById('elem-config-desc').innerText = elem.config.map((num, i) => `Shell ${i+1}: ${num} e⁻`).join(' | ');
+
+            document.getElementById('nucleus-p').innerText = `${elem.z} P`;
+            document.getElementById('nucleus-n').innerText = `${Math.round(elem.a - elem.z)} N`;
+
+            const container = document.getElementById('atom-canvas-container');
+            const oldShells = container.querySelectorAll('.atom-shell, .electron-dot');
+            oldShells.forEach(el => el.remove());
+
+            const baseRadius = 45;
+            elem.config.forEach((count, shellIdx) => {
+                const radius = baseRadius + (shellIdx * 28);
+                const shellDiv = document.createElement('div');
+                shellDiv.className = 'atom-shell';
+                shellDiv.style.width = `${radius * 2}px`;
+                shellDiv.style.height = `${radius * 2}px`;
+                container.appendChild(shellDiv);
+
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * 2 * Math.PI - (Math.PI / 2);
+                    const eX = Math.cos(angle) * radius;
+                    const eY = Math.sin(angle) * radius;
+
+                    const eDot = document.createElement('div');
+                    eDot.className = 'electron-dot absolute w-3.5 h-3.5 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50 flex items-center justify-center text-[8px] font-bold text-slate-950 border border-white';
+                    eDot.innerText = '-';
+                    eDot.style.left = `calc(50% + ${eX}px - 7px)`;
+                    eDot.style.top = `calc(50% + ${eY}px - 7px)`;
+                    container.appendChild(eDot);
+                }
+            });
+        }
+
+        function switchTrendGroup(grp) {
+            document.getElementById('group1-lab').classList.toggle('hidden', grp !== 'g1');
+            document.getElementById('group7-lab').classList.toggle('hidden', grp !== 'g7');
+            document.getElementById('btn-g1').className = grp === 'g1' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200';
+            document.getElementById('btn-g7').className = grp === 'g7' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200';
+        }
+
+        function simulateGroup1(metal) {
+            const piece = document.getElementById('metal-piece');
+            const bubbles = document.getElementById('reaction-bubbles');
+            const title = document.getElementById('g1-title');
+            const desc = document.getElementById('g1-desc');
+            const eq = document.getElementById('g1-eq');
+
+            piece.innerText = metal;
+            bubbles.classList.remove('hidden');
+
+            if (metal === 'Li') {
+                title.innerText = 'Lithium + Water Reaction';
+                desc.innerText = 'Fizzes steadily, releases Hydrogen gas, and moves slowly across the water surface without melting.';
+                eq.innerText = '2Li(s) + 2H₂O(l) → 2LiOH(aq) + H₂(g)';
+            } else if (metal === 'Na') {
+                title.innerText = 'Sodium + Water Reaction';
+                desc.innerText = 'Vigorous reaction! Sodium melts into a silvery sphere, darts rapidly across the surface, and may ignite with a yellow flame.';
+                eq.innerText = '2Na(s) + 2H₂O(l) → 2NaOH(aq) + H₂(g)';
+            } else if (metal === 'K') {
+                title.innerText = 'Potassium + Water Reaction';
+                desc.innerText = 'EXTREMELY VIGOROUS! Instantly ignites with a characteristic lilac flame and crackles loudly at the end.';
+                eq.innerText = '2K(s) + 2H₂O(l) → 2KOH(aq) + H₂(g)';
+            }
+        }
+
+        function switchBondType(type) {
+            const area = document.getElementById('bonding-visual-area');
+            const title = document.getElementById('bond-title');
+            const desc = document.getElementById('bond-desc');
+
+            document.getElementById('btn-bond-ionic').className = type === 'ionic' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 text-white shadow-lg shadow-amber-600/30' : 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200';
+            document.getElementById('btn-bond-covalent').className = type === 'covalent' ? 'px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 text-white shadow-lg shadow-amber-600/30' : 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-slate-200';
+
+            if (type === 'ionic') {
+                title.innerText = "Ionic Bonding in Sodium Chloride (NaCl)";
+                desc.innerText = "Sodium (Na) transfers 1 valence electron to Chlorine (Cl). Sodium forms Na⁺ cation, Chlorine forms Cl⁻ anion. Electrostatic attraction binds them.";
+                area.innerHTML = `
+                    <div class="flex items-center gap-6">
+                        <div class="w-16 h-16 rounded-full bg-indigo-600 border-2 border-indigo-400 flex flex-col items-center justify-center font-bold text-white shadow-xl">
+                            <span>Na⁺</span>
+                            <span class="text-[9px] text-indigo-200">[2,8]</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-amber-400 text-xl animate-pulse"></i>
+                        <div class="w-20 h-20 rounded-full bg-emerald-600 border-2 border-emerald-400 flex flex-col items-center justify-center font-bold text-white shadow-xl">
+                            <span>Cl⁻</span>
+                            <span class="text-[9px] text-emerald-200">[2,8,8]</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                title.innerText = "Covalent Bonding in Water (H₂O)";
+                desc.innerText = "Oxygen shares 1 pair of electrons with each of the 2 Hydrogen atoms, forming single covalent bonds.";
+                area.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-950 border-2 border-white flex items-center justify-center font-bold text-xs shadow">H</div>
+                        <div class="w-16 h-16 rounded-full bg-rose-600 border-2 border-rose-400 flex items-center justify-center font-bold text-white shadow-xl">O</div>
+                        <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-950 border-2 border-white flex items-center justify-center font-bold text-xs shadow">H</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateDensityLab() {
+            const m = parseFloat(document.getElementById('slider-mass').value);
+            const v = parseFloat(document.getElementById('slider-vol').value);
+            const fluidRho = parseFloat(document.getElementById('fluid-select').value);
+
+            document.getElementById('mass-val').innerText = `${m} g`;
+            document.getElementById('vol-val').innerText = `${v} cm³`;
+
+            const rho = (m / v).toFixed(2);
+            document.getElementById('calc-density').innerText = `${rho} g/cm³`;
+            document.getElementById('block-rho-label').innerText = `${rho} g/cm³`;
+
+            const block = document.getElementById('block-object');
+            const status = document.getElementById('float-status');
+
+            if (rho < fluidRho) {
+                block.style.bottom = '110px';
+                status.className = "p-2 rounded-lg text-center text-xs font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800";
+                status.innerText = `Object FLOATS (Density ${rho} < Fluid ${fluidRho} g/cm³)`;
+            } else {
+                block.style.bottom = '10px';
+                status.className = "p-2 rounded-lg text-center text-xs font-bold bg-rose-950/60 text-rose-300 border border-rose-800";
+                status.innerText = `Object SINKS (Density ${rho} ≥ Fluid ${fluidRho} g/cm³)`;
+            }
+        }
+
+        function updateHeatLab() {
+            const temp = parseInt(document.getElementById('slider-temp').value);
+            document.getElementById('temp-val').innerText = `${temp} °C`;
+
+            const rod = document.getElementById('expanding-rod');
+            const baseWidth = 70;
+            const extraWidth = (temp / 500) * 25;
+            rod.style.width = `${baseWidth + extraWidth}%`;
+        }
+
+        function updateSankeyLab() {
+            const device = document.getElementById('sankey-device-select').value;
+            let eff = 10;
+            if (device === 'led') eff = 85;
+            if (device === 'motor') eff = 75;
+
+            const wasted = 100 - eff;
+            document.getElementById('sankey-useful-bar').style.width = `${eff}%`;
+            document.getElementById('sankey-wasted-bar').style.width = `${wasted}%`;
+
+            document.getElementById('sankey-useful').innerText = `Useful Output: ${eff}J`;
+            document.getElementById('sankey-wasted').innerText = `Wasted Output: ${wasted}J`;
+        }
+
+        function toggleEvaporationFan() {
+            fanRunning = !fanRunning;
+            const btn = document.getElementById('fan-toggle-btn');
+            if (fanRunning) {
+                btn.className = "px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-rose-600/30";
+                btn.innerHTML = '<i class="fa-solid fa-fan fa-spin"></i> Turn Off Air Fan';
+
+                fanInterval = setInterval(() => {
+                    let wTemp = parseFloat(document.getElementById('temp-water-text').innerText);
+                    let aTemp = parseFloat(document.getElementById('temp-alcohol-text').innerText);
+
+                    if (wTemp > 18) wTemp -= 0.2;
+                    if (aTemp > 10) aTemp -= 0.5;
+
+                    document.getElementById('temp-water-text').innerText = `${wTemp.toFixed(1)} °C`;
+                    document.getElementById('temp-alcohol-text').innerText = `${aTemp.toFixed(1)} °C`;
+
+                    document.getElementById('thermo-water-fill').style.height = `${(wTemp / 30) * 100}%`;
+                    document.getElementById('thermo-alcohol-fill').style.height = `${(aTemp / 30) * 100}%`;
+                }, 300);
+            } else {
+                clearInterval(fanInterval);
+                btn.className = "px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-sky-600/30";
+                btn.innerHTML = '<i class="fa-solid fa-fan"></i> Turn On Air Fan';
+            }
+        }
+
+        function resetEvaporation() {
+            if (fanRunning) toggleEvaporationFan();
+            document.getElementById('temp-water-text').innerText = '25.0 °C';
+            document.getElementById('temp-alcohol-text').innerText = '25.0 °C';
+            document.getElementById('thermo-water-fill').style.height = '60%';
+            document.getElementById('thermo-alcohol-fill').style.height = '60%';
+        }
+
+        function renderQuizQuestion() {
+            const q = QUIZ_QUESTIONS[currentQuizIdx];
+            document.getElementById('quiz-q-num').innerText = `Question ${currentQuizIdx + 1} / ${QUIZ_QUESTIONS.length}`;
+            document.getElementById('quiz-q-text').innerText = q.question;
+
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-xs sm:text-sm font-medium transition flex items-center justify-between";
+
+                if (quizAnswers[currentQuizIdx] === idx) {
+                    if (idx === q.correct) {
+                        btn.className = "w-full text-left p-3.5 rounded-xl border border-emerald-500 bg-emerald-950/60 text-emerald-200 text-xs sm:text-sm font-medium transition flex items-center justify-between";
+                    } else {
+                        btn.className = "w-full text-left p-3.5 rounded-xl border border-rose-500 bg-rose-950/60 text-rose-200 text-xs sm:text-sm font-medium transition flex items-center justify-between";
+                    }
+                }
+
+                btn.onclick = () => handleQuizAnswer(idx);
+                btn.innerHTML = `
+                    <span><strong class="text-indigo-400 mr-2">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
+                    ${quizAnswers[currentQuizIdx] === idx ? (idx === q.correct ? '<i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>' : '<i class="fa-solid fa-circle-xmark text-rose-400 text-base"></i>') : ''}
+                `;
+                optsContainer.appendChild(btn);
+            });
+
+            const fb = document.getElementById('quiz-feedback');
+            if (quizAnswers[currentQuizIdx] !== null) {
+                fb.classList.remove('hidden');
+                if (quizAnswers[currentQuizIdx] === q.correct) {
+                    fb.className = "mt-4 p-3.5 rounded-xl text-xs font-medium bg-emerald-950/60 text-emerald-300 border border-emerald-800/60";
+                    fb.innerText = ` Correct! ${q.explanation}`;
+                } else {
+                    fb.className = "mt-4 p-3.5 rounded-xl text-xs font-medium bg-rose-950/60 text-rose-300 border border-rose-800/60";
+                    fb.innerText = ` Incorrect. ${q.explanation}`;
+                }
+            } else {
+                fb.classList.add('hidden');
+            }
+
+            document.getElementById('quiz-prev-btn').disabled = currentQuizIdx === 0;
+            document.getElementById('quiz-next-btn').innerText = currentQuizIdx === QUIZ_QUESTIONS.length - 1 ? 'Finish Assessment' : 'Next Question';
+        }
+
+        function handleQuizAnswer(idx) {
+            quizAnswers[currentQuizIdx] = idx;
+            let score = 0;
+            quizAnswers.forEach((ans, i) => {
+                if (ans === QUIZ_QUESTIONS[i].correct) score++;
+            });
+            document.getElementById('quiz-score').innerText = `${score} / ${QUIZ_QUESTIONS.length}`;
+            renderQuizQuestion();
+        }
+
+        function prevQuizQuestion() {
+            if (currentQuizIdx > 0) {
+                currentQuizIdx--;
+                renderQuizQuestion();
+            }
+        }
+
+        function nextQuizQuestion() {
+            if (currentQuizIdx < QUIZ_QUESTIONS.length - 1) {
+                currentQuizIdx++;
+                renderQuizQuestion();
+            } else {
+                alert("Assessment Complete! You can review your answers or return to any simulation module.");
+            }
+        }
+    </script>
+</body>
+</html>
